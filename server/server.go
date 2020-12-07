@@ -99,7 +99,9 @@ func checkerboarder() {
 
 func tostring() string {
 	var str string
+	str = "〇一二三四五六七八\n"
 	for i := 0; i < 10; i++ {
+
 		for j := 0; j < 9; j++ {
 			if table[i][j].isAlive == false {
 				str += "十"
@@ -112,9 +114,23 @@ func tostring() string {
 			}
 		}
 		// fmt.Println()
+		s := strconv.Itoa(i)
+		str += s
 		str += "\n"
 	}
+	str += "〇一二三四五六七八\n"
 	return str
+}
+
+func check(x1, y1, x2, y2 int) bool {
+	ret := true
+	t := table[x1][y1].type1
+	if t == rook {
+
+	} else if t == knight {
+
+	}
+	return ret
 }
 
 func winner(x, y int) int {
@@ -206,10 +222,10 @@ func say(tcpConn *net.TCPConn) {
 				}
 				if w == 0 {
 					start = false
-					conn.Write([]byte("Red is the winner\n"))
+					conn.Write([]byte("Red is the winner\n" + tostring()))
 				} else if w == 1 {
 					start = false
-					conn.Write([]byte("Black is the winner\n"))
+					conn.Write([]byte("Black is the winner\n" + tostring()))
 				} else {
 					conn.Write([]byte(tostring()))
 				}
