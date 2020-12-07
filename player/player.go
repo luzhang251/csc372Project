@@ -2,20 +2,25 @@
 //https://docs.google.com/document/d/1aadvk1rOnTXXjB7WmXU_0qmTFzRn_LfsjvJCsCaGMhQ/edit?usp=sharing
 Assignment: Final Project - Part 3 Creative Program
 Author: Lu Zhang, Zhenyu Yuan
-
 Course: CSc 372
 Instructor: L. McCann
 TA(s): Tito Ferra and Josh Xiong
 Due Date: Dec 7, 2020
-
 Description: A Chinese Chess Game
 			 This is the code of client-side
+			 basicly this client-side only
+			 contains TCPconn structure code
+			 and features of send and receive messages.
+			 Golang manual contains a good tutorial of the use of
+			 net package.
+
 Language: Golang
-Ex. Packages: None.
+Ex. Packages: None.(all original packages, no 3rd party packages)
 Deficiencies: None.
 */
 package main
 
+// import packages
 import (
 	"bufio"
 	"fmt"
@@ -23,8 +28,8 @@ import (
 	"os"
 )
 
+// check error
 var ch chan int = make(chan int)
-
 var nickname string
 
 // read the content that is sended from the server

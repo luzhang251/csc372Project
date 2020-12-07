@@ -2,21 +2,24 @@
 //https://docs.google.com/document/d/1aadvk1rOnTXXjB7WmXU_0qmTFzRn_LfsjvJCsCaGMhQ/edit?usp=sharing
 Assignment: Final Project - Part 3 Creative Program
 Author: Lu Zhang, Zhenyu Yuan
-
 Course: CSc 372
 Instructor: L. McCann
 TA(s): Tito Ferra and Josh Xiong
 Due Date: November 23, 2020
-
 Description: A Chinese Chess Game
 			 This is the code of server-side
+			 Which contains logic of Chinese chess,
+			 TCPconn structure, send and receive messages features,
+			 move, autosave, load, and replay features.
+
 Language: Golang
-Ex. Packages: None.
+Ex. Packages: None. (all original packages, no 3rd party packages)
 Deficiencies: None.
 */
 
 package main
 
+// import packages
 import (
 	"bufio"
 	"fmt"
@@ -77,7 +80,7 @@ var table [10][9]Piece
 // the current filename
 var filename string
 
-// init the table
+// init the table, place all pieces
 func checkerboarder() {
 	start = true
 	for i := 0; i < 10; i++ {
@@ -122,6 +125,8 @@ func checkerboarder() {
 }
 
 // stringfy the table to a string
+// because Golang has no original GUI support, so we choosed
+// to create a console version
 func tostring() string {
 	var str string
 	str = "〇一二三四五六七八\n"
@@ -457,12 +462,14 @@ func checkErr(err error) int {
 	return 1
 }
 
+// auto save to a txt file
 func appendToFile(fileName string, content []byte) {
 	fd, _ := os.OpenFile(fileName+".txt", os.O_RDWR|os.O_CREATE|os.O_APPEND, 0644)
 	fd.Write(content)
 	fd.Close()
 }
 
+// broadcast to clients
 func say(tcpConn *net.TCPConn) {
 	for {
 		data := make([]byte, 50240)
@@ -470,7 +477,10 @@ func say(tcpConn *net.TCPConn) {
 		str := string(data[:total])
 		nickname := strings.Split(str, ":")[0]
 		nickname = nickname[1:(len(nickname) - 2)]
-		command := strings.Split(str, " ")[1][0:5]
+		command := strings.Split(str, " ")[1]
+		if len(command) >= 5 {
+			command = command[0:5]
+		}
 		eligible := true
 		fmt.Printf("===" + command + "===\n")
 		if strings.Compare(command, "chess") == 0 { //start a new game
