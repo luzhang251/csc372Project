@@ -47,6 +47,8 @@ type Piece struct {
 	isEmpty bool
 }
 
+var start bool
+
 type newGame interface {
 	checkerboard()
 }
@@ -54,6 +56,7 @@ type newGame interface {
 var table [10][9]Piece
 
 func checkerboarder() {
+	start = true
 	for i := 0; i < 10; i++ {
 		for j := 0; j < 9; j++ {
 			table[i][j].isEmpty = true
@@ -101,6 +104,8 @@ func tostring() string {
 			if table[i][j].isAlive == false {
 				str += "十"
 				// fmt.Print("十")
+			} else if table[i][j].isEmpty {
+				str += "十"
 			} else {
 				str += table[i][j].name
 				// fmt.Print(table[i][j].name)
@@ -112,7 +117,16 @@ func tostring() string {
 	return str
 }
 
+func winner(x, y int) int {
+	ret := -1
+	if table[x][y].type1 == general && table[x][y].isEmpty == false {
+		return (1 - table[x][y].camp)
+	}
+	return ret
+}
+
 func move(from, to string) {
+
 	x1, err := strconv.Atoi(from[0:1])
 	y1, err := strconv.Atoi(from[1:2])
 	x2, err := strconv.Atoi(to[0:1])
@@ -151,13 +165,22 @@ func say(tcpConn *net.TCPConn) {
 		str := string(data[:total])
 		nickname := strings.Split(str, ":")[0]
 		nickname = nickname[1:(len(nickname) - 2)]
-		command := strings.Split(str, " ")[1]
+		command := strings.Split(str, " ")[1][0:5]
+		var w int // check if there is a winner
+		fmt.Printf("===" + command + "===\n")
 		if strings.Compare(command, "chess") == 0 { //开始新游戏
 			checkerboarder()
 			fmt.Println(tostring(), err) //打印到server屏幕
 		} else if strings.Compare(command, "/move") == 0 {
-			from := strings.Split(str, " ")[2]
-			to := strings.Split(str, " ")[3]
+			from := strings.Split(str, " ")[2][0:2]
+			to := strings.Split(str, " ")[3][0:2]
+			//check
+			x2, err := strconv.Atoi(to[0:1])
+			y2, err := strconv.Atoi(to[1:2])
+			if err != nil {
+				fmt.Println("error")
+			}
+			w = winner(x2, y2)
 			move(from, to)
 			fmt.Println(tostring(), err)
 		} else if strings.Compare(command, "/load") == 0 {
@@ -172,11 +195,24 @@ func say(tcpConn *net.TCPConn) {
 		}
 
 		for _, conn := range ConnMap {
-			if conn.RemoteAddr().String() == tcpConn.RemoteAddr().String() && strings.Compare(command, "chess") != 0 {
+			if conn.RemoteAddr().String() == tcpConn.RemoteAddr().String() && strings.Compare(command, "chess") != 0 && strings.Compare(command, "/move") != 0 {
 				continue
 			}
-			if strings.Compare(command, "chess") == 0 || strings.Compare(command, "/move") == 0 {
+			if strings.Compare(command, "chess") == 0 {
 				conn.Write([]byte(tostring()))
+			} else if strings.Compare(command, "/move") == 0 {
+				if start == false && conn.RemoteAddr().String() == tcpConn.RemoteAddr().String() {
+					conn.Write([]byte("The game is finished!\n"))
+				}
+				if w == 0 {
+					start = false
+					conn.Write([]byte("Red is the winner\n"))
+				} else if w == 1 {
+					start = false
+					conn.Write([]byte("Black is the winner\n"))
+				} else {
+					conn.Write([]byte(tostring()))
+				}
 			} else {
 				conn.Write(data[:total])
 			}
@@ -186,7 +222,6 @@ func say(tcpConn *net.TCPConn) {
 }
 
 func main() {
-
 	tcpAddr, _ := net.ResolveTCPAddr("tcp", "127.0.0.1:9999")
 	tcpListener, _ := net.ListenTCP("tcp", tcpAddr)
 	ConnMap = make(map[string]*net.TCPConn)

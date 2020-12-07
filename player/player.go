@@ -1,6 +1,7 @@
 package main
 
 import (
+	"bufio"
 	"fmt"
 	"net"
 	"os"
@@ -37,9 +38,10 @@ func main() {
 	fmt.Println("Your nickname is", nickname)
 
 	for {
-		var msg string
-		fmt.Scanln(&msg)
-		b := []byte("<" + nickname + ">" + ": " + msg)
+		scanner := bufio.NewScanner(os.Stdin)
+		scanner.Scan()
+		msg := scanner.Text()
+		b := []byte("<" + nickname + ">" + ": " + msg + "\n")
 		conn.Write(b)
 		select {
 		case <-ch:
