@@ -12,7 +12,7 @@ var ch chan int = make(chan int)
 var nickname string
 
 func reader(conn *net.TCPConn) {
-	buff := make([]byte, 1024)
+	buff := make([]byte, 50240)
 	for {
 		j, err := conn.Read(buff)
 		if err != nil {

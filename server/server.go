@@ -423,7 +423,7 @@ func appendToFile(fileName string, content []byte) {
 
 func say(tcpConn *net.TCPConn) {
 	for {
-		data := make([]byte, 1024)
+		data := make([]byte, 50240)
 		total, err := tcpConn.Read(data)
 		str := string(data[:total])
 		nickname := strings.Split(str, ":")[0]
@@ -433,7 +433,6 @@ func say(tcpConn *net.TCPConn) {
 		fmt.Printf("===" + command + "===\n")
 		if strings.Compare(command, "chess") == 0 { //开始新游戏
 			checkerboarder()
-
 			fmt.Println(tostring(), err) //打印到server屏幕
 			filename = strings.Split(str, " ")[2]
 			filename = strings.Replace(filename, " ", "", -1)
@@ -452,13 +451,11 @@ func say(tcpConn *net.TCPConn) {
 			eligible = check(x1, y1, x2, y2)
 			if eligible && start {
 				move(from, to)
-
 				appendToFile(filename, data[:total])
 			}
 
 			fmt.Println(tostring(), err)
 		} else if strings.Compare(command, "/load") == 0 {
-			fmt.Println("llllllll" + "  ")
 		}
 		fmt.Println(string(data[:total]), err) //打印到server屏幕
 		flag := checkErr(err)
@@ -467,15 +464,40 @@ func say(tcpConn *net.TCPConn) {
 		}
 
 		for _, conn := range ConnMap {
-			if conn.RemoteAddr().String() == tcpConn.RemoteAddr().String() && strings.Compare(command, "chess") != 0 && strings.Compare(command, "/move") != 0 && strings.Compare(command, "/load") != 0 {
+			if conn.RemoteAddr().String() == tcpConn.RemoteAddr().String() && strings.Compare(command, "chess") != 0 && strings.Compare(command, "/move") != 0 && strings.Compare(command, "/load") != 0 && strings.Compare(command, "/repl") != 0 {
 				continue
 			}
-			if strings.Compare(command, "/load") == 0 {
-				fmt.Println("llllllll" + "***** ")
+			if strings.Compare(command, "/repl") == 0 {
 				if conn.RemoteAddr().String() != tcpConn.RemoteAddr().String() {
 					continue
 				}
+				checkerboarder()
+				fn := strings.Split(str, " ")[2]
+				fn = strings.Replace(fn, " ", "", -1)
+				fn = strings.Replace(fn, "\n", "", -1)
+				fn = fn + ".txt"
+				file, err := os.Open(fn)
+				if err != nil {
+					fmt.Println("read fail")
+				}
+				defer file.Close()
+				scanner := bufio.NewScanner(file)
+				res := tostring() + "\n\n=============\n"
+				for scanner.Scan() {
+					line := scanner.Text()
+					from := strings.Split(line, " ")[2][0:2]
+					to := strings.Split(line, " ")[3][0:2]
+					move(from, to)
+					res += tostring()
+					res += "\n\n=============\n"
+				}
+				conn.Write([]byte(res))
+				continue
 
+			} else if strings.Compare(command, "/load") == 0 {
+				if conn.RemoteAddr().String() != tcpConn.RemoteAddr().String() {
+					continue
+				}
 				fn := strings.Split(str, " ")[2]
 				fn = strings.Replace(fn, " ", "", -1)
 				fn = strings.Replace(fn, "\n", "", -1)
