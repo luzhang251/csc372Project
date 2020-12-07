@@ -122,23 +122,256 @@ func tostring() string {
 	return str
 }
 
+func abs(x int) int {
+	if x < 0 {
+		return -x
+	}
+	return x
+}
+
 func check(x1, y1, x2, y2 int) bool {
 	ret := true
 	t := table[x1][y1].type1
+	if x1 == x2 && y1 == y2 {
+		return false
+	}
+	if x2 > 9 || x2 < 0 || y2 > 8 || y2 < 0 {
+		return false
+	}
+	if table[x1][y1].isEmpty {
+		return false
+	}
+	if table[x2][y2].isEmpty == false && table[x1][y1].camp == table[x2][y2].camp {
+		return false
+	}
 	if t == rook {
-
+		if x1 != x2 && y1 != y2 {
+			return false
+		}
+		if x1 == x2 {
+			if y1 > y2 {
+				t := y1
+				y1 = y2
+				y2 = t
+			}
+			for i := y1 + 1; i < y2; i++ {
+				if table[x1][i].isEmpty == false {
+					return false
+				}
+			}
+		} else if y1 == y2 {
+			if x1 > x2 {
+				t := x1
+				x1 = x2
+				x2 = t
+			}
+			for i := x1 + 1; i < x2; i++ {
+				if table[i][y1].isEmpty == false {
+					return false
+				}
+			}
+		}
 	} else if t == knight {
+		if x1 == x2 {
+			return false
+		}
+		if y1 == y2 {
+			return false
+		}
+		if (abs(x1-x2) + abs(y1-y2)) != 3 {
+			return false
+		}
+		if abs(y1-y2) == 2 {
+			return table[x1][(y1+y2)/2].isEmpty
+		}
+		if abs(x1-x2) == 2 {
+			return table[(x1+x2)/2][y1].isEmpty
+		}
+	} else if t == bishop {
+		if abs(x1-x2) != 2 || abs(y1-y2) != 2 {
+			return false
+		}
+		return table[(x1+x2)/2][(y1+y2)/2].isEmpty
+	} else if t == escort {
+		if abs(x1-x2) != 1 || abs(y1-y2) != 1 {
+			return false
+		}
+		if table[x1][y1].camp == 0 {
+			if x2 > 2 || y2 < 3 || y2 > 5 {
+				return false
+			}
+		} else if table[x1][y1].camp == 1 {
+			if x2 < 7 || y2 < 3 || y2 > 5 {
+				return false
+			}
+		}
+	} else if t == pawn {
+		if (abs(x1-x2) + abs(y1-y2)) > 1 {
+			return false
+		}
+		c := table[x1][y1].camp
+		if c == 0 {
+			if x2 < x1 {
+				return false
+			}
+			if x2 <= 4 && y1 != y2 {
+				return false
+			}
+		} else if c == 1 {
+			if x2 > x1 {
+				return false
+			}
+			if x2 >= 5 && y1 != y2 {
+				return false
+			}
+		}
+	} else if t == cannon {
+		if x2 > 9 {
+			return false
+		}
+		if x1 > 9 {
+			return false
+		}
+		if x1 != x2 && y1 != y2 {
+			return false
+		}
+		if x1 == x2 {
+			sum := 0
+			if y1 > y2 {
+				p := y1
+				y1 = y2
+				y2 = p
+			}
+
+			for i := y1 + 1; i < y2; i++ {
+				if table[x1][i].isEmpty == false {
+					sum++
+				}
+			}
+			if sum > 1 {
+				return false
+			} else if sum == 1 {
+				if table[x1][y1].isEmpty == true {
+					return false
+				}
+				if table[x1][y2].isEmpty == true {
+					return false
+				}
+			} else {
+				if table[x1][y1].isEmpty == false {
+					return false
+				}
+				if table[x1][y2].isEmpty == false {
+					return false
+				}
+			}
+		} else {
+			sum := 0
+			if x1 > x2 {
+				p := x1
+				x1 = x2
+				x2 = p
+			}
+
+			for i := x1 + 1; i < x2; i++ {
+				if table[i][y1].isEmpty == false {
+					sum++
+				}
+			}
+			if sum > 1 {
+				return false
+			} else if sum == 1 {
+				if table[x1][y1].isEmpty == true {
+					return false
+				}
+				if table[x1][y2].isEmpty == true {
+					return false
+				}
+			} else {
+				if table[x1][y1].isEmpty == false {
+					return false
+				}
+				if table[x1][y2].isEmpty == false {
+					return false
+				}
+			}
+		}
+
+	} else if t == general {
+		if y2 > 5 {
+			return false
+		}
+		if y2 < 3 {
+			return false
+		}
+		if y1 > 5 {
+			return false
+		}
+		if y1 < 3 {
+			return false
+		}
+
+		if x1 != x2 && y1 != y2 {
+			return false
+		}
+		if table[x1][y1].camp == 0 {
+			if x2 > 2 {
+				return false
+			}
+			if x1 > 2 {
+				return false
+			}
+		} else {
+			if x2 < 7 {
+				return false
+			}
+			if x1 < 7 {
+				return false
+			}
+		}
+		if y1 > y2 {
+			p := y1
+			y1 = y2
+			y2 = p
+		}
+		if x1 > x2 {
+			p := x1
+			x1 = x2
+			x2 = p
+		}
+		if y2-y1 != 1 {
+			return false
+		}
+		if x2-x1 != 1 {
+			return false
+		}
 
 	}
 	return ret
 }
 
-func winner(x, y int) int {
-	ret := -1
-	if table[x][y].type1 == general && table[x][y].isEmpty == false {
-		return (1 - table[x][y].camp)
+func winner() int {
+	var g [2]bool
+	for i := 0; i < 10; i++ {
+		for j := 0; j < 9; j++ {
+			if table[i][j].isEmpty {
+				continue
+			}
+			if table[i][j].type1 == general {
+				g[table[i][j].camp] = true
+			}
+		}
 	}
-	return ret
+	if g[0] && g[1] {
+		return -1
+	} else if g[0] == false && g[1] {
+		return 1
+	} else if g[1] == false && g[0] {
+		return 0
+	} else {
+		fmt.Printf("error!!!!!!\n")
+		return -2
+	}
 }
 
 func move(from, to string) {
@@ -182,7 +415,7 @@ func say(tcpConn *net.TCPConn) {
 		nickname := strings.Split(str, ":")[0]
 		nickname = nickname[1:(len(nickname) - 2)]
 		command := strings.Split(str, " ")[1][0:5]
-		var w int // check if there is a winner
+		eligible := true
 		fmt.Printf("===" + command + "===\n")
 		if strings.Compare(command, "chess") == 0 { //开始新游戏
 			checkerboarder()
@@ -191,13 +424,18 @@ func say(tcpConn *net.TCPConn) {
 			from := strings.Split(str, " ")[2][0:2]
 			to := strings.Split(str, " ")[3][0:2]
 			//check
+			x1, err := strconv.Atoi(from[0:1])
+			y1, err := strconv.Atoi(from[1:2])
 			x2, err := strconv.Atoi(to[0:1])
 			y2, err := strconv.Atoi(to[1:2])
 			if err != nil {
 				fmt.Println("error")
 			}
-			w = winner(x2, y2)
-			move(from, to)
+			eligible = check(x1, y1, x2, y2)
+			if eligible && start {
+				move(from, to)
+			}
+
 			fmt.Println(tostring(), err)
 		} else if strings.Compare(command, "/load") == 0 {
 
@@ -217,14 +455,17 @@ func say(tcpConn *net.TCPConn) {
 			if strings.Compare(command, "chess") == 0 {
 				conn.Write([]byte(tostring()))
 			} else if strings.Compare(command, "/move") == 0 {
-				if start == false && conn.RemoteAddr().String() == tcpConn.RemoteAddr().String() {
+				if start == false {
 					conn.Write([]byte("The game is finished!\n"))
+					continue
 				}
-				if w == 0 {
-					start = false
+				if eligible == false {
+					conn.Write([]byte("Eligible move!\n"))
+					continue
+				}
+				if winner() == 0 {
 					conn.Write([]byte("Red is the winner\n" + tostring()))
-				} else if w == 1 {
-					start = false
+				} else if winner() == 1 {
 					conn.Write([]byte("Black is the winner\n" + tostring()))
 				} else {
 					conn.Write([]byte(tostring()))
@@ -233,6 +474,9 @@ func say(tcpConn *net.TCPConn) {
 				conn.Write(data[:total])
 			}
 
+		}
+		if winner() != -1 {
+			start = false
 		}
 	}
 }
