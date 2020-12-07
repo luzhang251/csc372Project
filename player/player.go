@@ -6,7 +6,7 @@ Author: Lu Zhang, Zhenyu Yuan
 Course: CSc 372
 Instructor: L. McCann
 TA(s): Tito Ferra and Josh Xiong
-Due Date: November 23, 2020
+Due Date: Dec 7, 2020
 
 Description: A Chinese Chess Game
 			 This is the code of client-side
