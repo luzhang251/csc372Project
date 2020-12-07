@@ -140,11 +140,9 @@ func say(tcpConn *net.TCPConn) {
 		}
 
 		for _, conn := range ConnMap {
-			if conn.RemoteAddr().String() == tcpConn.RemoteAddr().String() {
+			if conn.RemoteAddr().String() == tcpConn.RemoteAddr().String() && strings.Compare(command, "chess") != 0 {
 				continue
 			}
-			fmt.Print(data[:total])
-			fmt.Print("-----------")
 			conn.Write([]byte(tostring())) //发给用户
 		}
 	}
