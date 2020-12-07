@@ -78,7 +78,8 @@ func checkerboarder() {
 	table[3][2] = Piece{camp: 0, type1: pawn, isAlive: true, name: pawn0}
 	table[3][4] = Piece{camp: 0, type1: pawn, isAlive: true, name: pawn0}
 	table[3][6] = Piece{camp: 0, type1: pawn, isAlive: true, name: pawn0}
-	table[3][8] = Piece{camp: 0, type1: pawn, isAlive: true, name: pawn1}
+	table[3][8] = Piece{camp: 0, type1: pawn, isAlive: true, name: pawn0}
+
 	table[6][0] = Piece{camp: 1, type1: pawn, isAlive: true, name: pawn1}
 	table[6][2] = Piece{camp: 1, type1: pawn, isAlive: true, name: pawn1}
 	table[6][4] = Piece{camp: 1, type1: pawn, isAlive: true, name: pawn1}
@@ -189,6 +190,13 @@ func check(x1, y1, x2, y2 int) bool {
 		}
 	} else if t == bishop {
 		if abs(x1-x2) != 2 || abs(y1-y2) != 2 {
+			return false
+		}
+		c := table[x1][y1].camp
+		if c == red && x2 > 4 {
+			return false
+		}
+		if c == black && x2 < 5 {
 			return false
 		}
 		return table[(x1+x2)/2][(y1+y2)/2].isEmpty
