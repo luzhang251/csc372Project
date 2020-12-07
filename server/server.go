@@ -143,7 +143,12 @@ func say(tcpConn *net.TCPConn) {
 			if conn.RemoteAddr().String() == tcpConn.RemoteAddr().String() && strings.Compare(command, "chess") != 0 {
 				continue
 			}
-			conn.Write([]byte(tostring())) //发给用户
+			if strings.Compare(command, "chess") == 0 {
+				conn.Write([]byte(tostring()))
+			} else {
+				conn.Write(data[:total])
+			}
+
 		}
 	}
 }
