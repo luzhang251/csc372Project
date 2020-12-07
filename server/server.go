@@ -1,3 +1,20 @@
+/*
+//https://docs.google.com/document/d/1aadvk1rOnTXXjB7WmXU_0qmTFzRn_LfsjvJCsCaGMhQ/edit?usp=sharing
+Assignment: Final Project - Part 3 Creative Program
+Author: Lu Zhang, Zhenyu Yuan
+
+Course: CSc 372
+Instructor: L. McCann
+TA(s): Tito Ferra and Josh Xiong
+Due Date: November 23, 2020
+
+Description: A Chinese Chess Game
+			 This is the code of server-side
+Language: Golang
+Ex. Packages: None.
+Deficiencies: None.
+*/
+
 package main
 
 import (
@@ -10,7 +27,7 @@ import (
 )
 
 const (
-	// pieces
+	// the type value of a piece
 	general = 0
 	rook    = 1
 	knight  = 2
@@ -18,7 +35,7 @@ const (
 	bishop  = 4
 	escort  = 5
 	pawn    = 6
-
+	// the character of each piece
 	general0 = "帅"
 	rook0    = "车"
 	knight0  = "马"
@@ -34,11 +51,12 @@ const (
 	bishop1  = "象"
 	escort1  = "士"
 	pawn1    = "卒"
-	// for camp
+	// two camp value
 	red   = 0
 	black = 1
 )
 
+// the struct of a piece
 type Piece struct {
 	camp    int
 	name    string
@@ -49,15 +67,17 @@ type Piece struct {
 	isEmpty bool
 }
 
+// if the game is started or not
 var start bool
 
-type newGame interface {
-	checkerboard()
-}
-
+// store the whole table
+// if a position is empty the piece of it is "isEmpty"
 var table [10][9]Piece
+
+// the current filename
 var filename string
 
+// init the table
 func checkerboarder() {
 	start = true
 	for i := 0; i < 10; i++ {
@@ -101,6 +121,7 @@ func checkerboarder() {
 	table[9][8] = Piece{camp: 1, type1: rook, isAlive: true, name: rook1}
 }
 
+// stringfy the table to a string
 func tostring() string {
 	var str string
 	str = "〇一二三四五六七八\n"
@@ -126,6 +147,7 @@ func tostring() string {
 	return str
 }
 
+// caculate the abs value
 func abs(x int) int {
 	if x < 0 {
 		return -x
@@ -133,22 +155,28 @@ func abs(x int) int {
 	return x
 }
 
+// check if a move is legal or not
 func check(x1, y1, x2, y2 int) bool {
 	ret := true
 	t := table[x1][y1].type1
+	// doesn't move
 	if x1 == x2 && y1 == y2 {
 		return false
 	}
+	// out of the board
 	if x2 > 9 || x2 < 0 || y2 > 8 || y2 < 0 {
 		return false
 	}
+	// the start position is empty
 	if table[x1][y1].isEmpty {
 		return false
 	}
+	// cannot eat the same camp
 	if table[x2][y2].isEmpty == false && table[x1][y1].camp == table[x2][y2].camp {
 		return false
 	}
-	if t == rook {
+	// for each type of piece
+	if t == rook { // simliar with western chess rook, but you cannot swap it with the genneral
 		if x1 != x2 && y1 != y2 {
 			return false
 		}
@@ -175,7 +203,7 @@ func check(x1, y1, x2, y2 int) bool {
 				}
 			}
 		}
-	} else if t == knight {
+	} else if t == knight { // similar with western chess knight, and can be blocked by a piece located one point horizontally or vertically adjacent to it.
 		if x1 == x2 {
 			return false
 		}
@@ -191,7 +219,7 @@ func check(x1, y1, x2, y2 int) bool {
 		if abs(x1-x2) == 2 {
 			return table[(x1+x2)/2][y1].isEmpty
 		}
-	} else if t == bishop {
+	} else if t == bishop { // an bishop cannot move due to a diagonally adjacent piece
 		if abs(x1-x2) != 2 || abs(y1-y2) != 2 {
 			return false
 		}
@@ -204,6 +232,9 @@ func check(x1, y1, x2, y2 int) bool {
 		}
 		return table[(x1+x2)/2][(y1+y2)/2].isEmpty
 	} else if t == escort {
+		//The escort start on either side of the general.
+		//They move and capture one point diagonally and may not leave the palace,
+		//which confines them to five points on the board.
 		if abs(x1-x2) != 1 || abs(y1-y2) != 1 {
 			return false
 		}
@@ -217,6 +248,10 @@ func check(x1, y1, x2, y2 int) bool {
 			}
 		}
 	} else if t == pawn {
+		//They move and capture by advancing one point.
+		//Once they have crossed the river,
+		//they may also move and capture one point horizontally.
+		//Soldiers cannot move backward
 		if (abs(x1-x2) + abs(y1-y2)) > 1 {
 			return false
 		}
@@ -237,6 +272,10 @@ func check(x1, y1, x2, y2 int) bool {
 			}
 		}
 	} else if t == cannon {
+		//Cannons move like chariots,
+		//any distance orthogonally without jumping,
+		//but can only capture by jumping a single piece,
+		//friend or foe, along the path of attack.
 		if x2 > 9 {
 			return false
 		}
@@ -309,6 +348,7 @@ func check(x1, y1, x2, y2 int) bool {
 		}
 
 	} else if t == general {
+		//The general may move and capture one point orthogonally and may not leave the palace
 		if y2 > 5 {
 			return false
 		}
@@ -358,6 +398,7 @@ func check(x1, y1, x2, y2 int) bool {
 	return ret
 }
 
+// check if there is a winner
 func winner() int {
 	var g [2]bool
 	for i := 0; i < 10; i++ {
@@ -382,6 +423,7 @@ func winner() int {
 	}
 }
 
+// one move, update the table
 func move(from, to string) {
 
 	x1, err := strconv.Atoi(from[0:1])
@@ -406,10 +448,10 @@ var ConnMap map[string]*net.TCPConn
 func checkErr(err error) int {
 	if err != nil {
 		if err.Error() == "EOF" {
-			fmt.Println("用户退出了")
+			fmt.Println("The user exits")
 			return 0
 		}
-		fmt.Println("错误")
+		fmt.Println("Error")
 		return -1
 	}
 	return 1
@@ -431,13 +473,13 @@ func say(tcpConn *net.TCPConn) {
 		command := strings.Split(str, " ")[1][0:5]
 		eligible := true
 		fmt.Printf("===" + command + "===\n")
-		if strings.Compare(command, "chess") == 0 { //开始新游戏
+		if strings.Compare(command, "chess") == 0 { //start a new game
 			checkerboarder()
-			fmt.Println(tostring(), err) //打印到server屏幕
+			fmt.Println(tostring(), err)
 			filename = strings.Split(str, " ")[2]
 			filename = strings.Replace(filename, " ", "", -1)
 			filename = strings.Replace(filename, "\n", "", -1)
-		} else if strings.Compare(command, "/move") == 0 {
+		} else if strings.Compare(command, "/move") == 0 { // the move command
 			from := strings.Split(str, " ")[2][0:2]
 			to := strings.Split(str, " ")[3][0:2]
 			//check
@@ -455,14 +497,13 @@ func say(tcpConn *net.TCPConn) {
 			}
 
 			fmt.Println(tostring(), err)
-		} else if strings.Compare(command, "/load") == 0 {
 		}
-		fmt.Println(string(data[:total]), err) //打印到server屏幕
+		fmt.Println(string(data[:total]), err)
 		flag := checkErr(err)
 		if flag == 0 {
 			break
 		}
-
+		// go around all online users
 		for _, conn := range ConnMap {
 			if conn.RemoteAddr().String() == tcpConn.RemoteAddr().String() && strings.Compare(command, "chess") != 0 && strings.Compare(command, "/move") != 0 && strings.Compare(command, "/load") != 0 && strings.Compare(command, "/repl") != 0 && strings.Compare(command, "/exit") != 0 {
 				continue
@@ -558,7 +599,7 @@ func main() {
 		defer tcpConn.Close()
 
 		ConnMap[tcpConn.RemoteAddr().String()] = tcpConn
-		fmt.Println("连接的客服端信息:", tcpConn.RemoteAddr().String())
+		fmt.Println("Connect to client:", tcpConn.RemoteAddr().String())
 		go say(tcpConn)
 	}
 }
