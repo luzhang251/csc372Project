@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"net"
+	"strconv"
 	"strings"
 )
 
@@ -43,6 +44,7 @@ type Piece struct {
 	isAlive bool
 	x       int
 	y       int
+	isEmpty bool
 }
 
 type newGame interface {
@@ -52,6 +54,12 @@ type newGame interface {
 var table [10][9]Piece
 
 func checkerboarder() {
+	for i := 0; i < 10; i++ {
+		for j := 0; j < 9; j++ {
+			table[i][j].isEmpty = true
+		}
+	}
+
 	table[0][0] = Piece{camp: 0, type1: rook, isAlive: true, name: rook0}
 	table[0][1] = Piece{camp: 0, type1: knight, isAlive: true, name: knight0}
 	table[0][2] = Piece{camp: 0, type1: bishop, isAlive: true, name: bishop0}
@@ -104,6 +112,24 @@ func tostring() string {
 	return str
 }
 
+func move(from, to string) {
+	x1, err := strconv.Atoi(from[0:1])
+	y1, err := strconv.Atoi(from[1:2])
+	x2, err := strconv.Atoi(to[0:1])
+	y2, err := strconv.Atoi(to[1:2])
+	if err != nil {
+		fmt.Println("error")
+	}
+	table[x1][y1].isEmpty = true
+	table[x2][y2].camp = table[x1][y1].camp
+	table[x2][y2].isAlive = table[x1][y1].isAlive
+	table[x2][y2].isEmpty = false
+	table[x2][y2].name = table[x1][y1].name
+	table[x2][y2].type1 = table[x1][y1].type1
+	table[x2][y2].x = x2
+	table[x2][y2].y = y2
+}
+
 var ConnMap map[string]*net.TCPConn
 
 func checkErr(err error) int {
@@ -123,11 +149,17 @@ func say(tcpConn *net.TCPConn) {
 		data := make([]byte, 1024)
 		total, err := tcpConn.Read(data)
 		str := string(data[:total])
+		nickname := strings.Split(str, ":")[0]
+		nickname = nickname[1:(len(nickname) - 2)]
 		command := strings.Split(str, " ")[1]
 		if strings.Compare(command, "chess") == 0 { //开始新游戏
+			checkerboarder()
 			fmt.Println(tostring(), err) //打印到server屏幕
 		} else if strings.Compare(command, "/move") == 0 {
-
+			from := strings.Split(str, " ")[2]
+			to := strings.Split(str, " ")[3]
+			move(from, to)
+			fmt.Println(tostring(), err)
 		} else if strings.Compare(command, "/load") == 0 {
 
 		} else if strings.Compare(command, "/save") == 0 {
@@ -143,7 +175,7 @@ func say(tcpConn *net.TCPConn) {
 			if conn.RemoteAddr().String() == tcpConn.RemoteAddr().String() && strings.Compare(command, "chess") != 0 {
 				continue
 			}
-			if strings.Compare(command, "chess") == 0 {
+			if strings.Compare(command, "chess") == 0 || strings.Compare(command, "/move") == 0 {
 				conn.Write([]byte(tostring()))
 			} else {
 				conn.Write(data[:total])
@@ -154,7 +186,7 @@ func say(tcpConn *net.TCPConn) {
 }
 
 func main() {
-	checkerboarder()
+
 	tcpAddr, _ := net.ResolveTCPAddr("tcp", "127.0.0.1:9999")
 	tcpListener, _ := net.ListenTCP("tcp", tcpAddr)
 	ConnMap = make(map[string]*net.TCPConn)
