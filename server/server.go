@@ -120,7 +120,7 @@ func checkErr(err error) int {
 
 func say(tcpConn *net.TCPConn) {
 	for {
-		data := make([]byte, 128)
+		data := make([]byte, 1024)
 		total, err := tcpConn.Read(data)
 		str := string(data[:total])
 		command := strings.Split(str, " ")[1]
