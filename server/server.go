@@ -464,10 +464,15 @@ func say(tcpConn *net.TCPConn) {
 		}
 
 		for _, conn := range ConnMap {
-			if conn.RemoteAddr().String() == tcpConn.RemoteAddr().String() && strings.Compare(command, "chess") != 0 && strings.Compare(command, "/move") != 0 && strings.Compare(command, "/load") != 0 && strings.Compare(command, "/repl") != 0 {
+			if conn.RemoteAddr().String() == tcpConn.RemoteAddr().String() && strings.Compare(command, "chess") != 0 && strings.Compare(command, "/move") != 0 && strings.Compare(command, "/load") != 0 && strings.Compare(command, "/repl") != 0 && strings.Compare(command, "/exit") != 0 {
 				continue
 			}
-			if strings.Compare(command, "/repl") == 0 {
+			if strings.Compare(command, "/exit") == 0 {
+				checkerboarder()
+				start = false
+				conn.Write([]byte("The game is finished!\n"))
+				continue
+			} else if strings.Compare(command, "/repl") == 0 {
 				if conn.RemoteAddr().String() != tcpConn.RemoteAddr().String() {
 					continue
 				}
