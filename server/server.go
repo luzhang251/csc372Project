@@ -92,13 +92,13 @@ func tostring() string {
 		for j := 0; j < 9; j++ {
 			if table[i][j].isAlive == false {
 				str += "十"
-				fmt.Print("十")
+				// fmt.Print("十")
 			} else {
 				str += table[i][j].name
-				fmt.Print(table[i][j].name)
+				// fmt.Print(table[i][j].name)
 			}
 		}
-		fmt.Println()
+		// fmt.Println()
 		str += "\n"
 	}
 	return str
@@ -123,10 +123,15 @@ func say(tcpConn *net.TCPConn) {
 		data := make([]byte, 128)
 		total, err := tcpConn.Read(data)
 		str := string(data[:total])
-		fmt.Println("---" + str + "----\n")
-		if strings.Compare(strings.Split(str, " ")[1], "chess") == 0 { //开始新游戏
-			fmt.Println(strings.Split(str, " ")[1] + "++++++")
-			tostring()
+		command := strings.Split(str, " ")[1]
+		if strings.Compare(command, "chess") == 0 { //开始新游戏
+			fmt.Println(tostring(), err) //打印到server屏幕
+		} else if strings.Compare(command, "/move") == 0 {
+
+		} else if strings.Compare(command, "/load") == 0 {
+
+		} else if strings.Compare(command, "/save") == 0 {
+
 		}
 		fmt.Println(string(data[:total]), err) //打印到server屏幕
 		flag := checkErr(err)
@@ -138,7 +143,9 @@ func say(tcpConn *net.TCPConn) {
 			if conn.RemoteAddr().String() == tcpConn.RemoteAddr().String() {
 				continue
 			}
-			conn.Write(data[:total]) //发给用户
+			fmt.Print(data[:total])
+			fmt.Print("-----------")
+			conn.Write([]byte(tostring())) //发给用户
 		}
 	}
 }
