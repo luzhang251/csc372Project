@@ -1,8 +1,10 @@
 package main
 
 import (
+	"bufio"
 	"fmt"
 	"net"
+	"os"
 	"strconv"
 	"strings"
 )
@@ -54,6 +56,7 @@ type newGame interface {
 }
 
 var table [10][9]Piece
+var filename string
 
 func checkerboarder() {
 	start = true
@@ -347,10 +350,7 @@ func check(x1, y1, x2, y2 int) bool {
 			x1 = x2
 			x2 = p
 		}
-		if y2-y1 != 1 {
-			return false
-		}
-		if x2-x1 != 1 {
+		if y2-y1 != 1 && x2-x1 != 1 {
 			return false
 		}
 
@@ -415,6 +415,12 @@ func checkErr(err error) int {
 	return 1
 }
 
+func appendToFile(fileName string, content []byte) {
+	fd, _ := os.OpenFile(fileName+".txt", os.O_RDWR|os.O_CREATE|os.O_APPEND, 0644)
+	fd.Write(content)
+	fd.Close()
+}
+
 func say(tcpConn *net.TCPConn) {
 	for {
 		data := make([]byte, 1024)
@@ -427,7 +433,11 @@ func say(tcpConn *net.TCPConn) {
 		fmt.Printf("===" + command + "===\n")
 		if strings.Compare(command, "chess") == 0 { //开始新游戏
 			checkerboarder()
+
 			fmt.Println(tostring(), err) //打印到server屏幕
+			filename = strings.Split(str, " ")[2]
+			filename = strings.Replace(filename, " ", "", -1)
+			filename = strings.Replace(filename, "\n", "", -1)
 		} else if strings.Compare(command, "/move") == 0 {
 			from := strings.Split(str, " ")[2][0:2]
 			to := strings.Split(str, " ")[3][0:2]
@@ -442,13 +452,13 @@ func say(tcpConn *net.TCPConn) {
 			eligible = check(x1, y1, x2, y2)
 			if eligible && start {
 				move(from, to)
+
+				appendToFile(filename, data[:total])
 			}
 
 			fmt.Println(tostring(), err)
 		} else if strings.Compare(command, "/load") == 0 {
-
-		} else if strings.Compare(command, "/save") == 0 {
-
+			fmt.Println("llllllll" + "  ")
 		}
 		fmt.Println(string(data[:total]), err) //打印到server屏幕
 		flag := checkErr(err)
@@ -457,10 +467,33 @@ func say(tcpConn *net.TCPConn) {
 		}
 
 		for _, conn := range ConnMap {
-			if conn.RemoteAddr().String() == tcpConn.RemoteAddr().String() && strings.Compare(command, "chess") != 0 && strings.Compare(command, "/move") != 0 {
+			if conn.RemoteAddr().String() == tcpConn.RemoteAddr().String() && strings.Compare(command, "chess") != 0 && strings.Compare(command, "/move") != 0 && strings.Compare(command, "/load") != 0 {
 				continue
 			}
-			if strings.Compare(command, "chess") == 0 {
+			if strings.Compare(command, "/load") == 0 {
+				fmt.Println("llllllll" + "***** ")
+				if conn.RemoteAddr().String() != tcpConn.RemoteAddr().String() {
+					continue
+				}
+
+				fn := strings.Split(str, " ")[2]
+				fn = strings.Replace(fn, " ", "", -1)
+				fn = strings.Replace(fn, "\n", "", -1)
+				fn = fn + ".txt"
+				fmt.Println("llllllll" + "  " + fn)
+				file, err := os.Open(fn)
+				if err != nil {
+					fmt.Println("read fail")
+				}
+				defer file.Close()
+				scanner := bufio.NewScanner(file)
+				line := ""
+				for scanner.Scan() {
+					line += scanner.Text() + "\n"
+				}
+				conn.Write([]byte(line))
+				continue
+			} else if strings.Compare(command, "chess") == 0 {
 				conn.Write([]byte(tostring()))
 			} else if strings.Compare(command, "/move") == 0 {
 				if start == false {
