@@ -6,12 +6,12 @@ import (
 	"os"
 )
 
-var ch chan int = make (chan int)
+var ch chan int = make(chan int)
 
 var nickname string
 
 func reader(conn *net.TCPConn) {
-	buff := make([]byte,128)
+	buff := make([]byte, 128)
 	for {
 		j, err := conn.Read(buff)
 		if err != nil {
@@ -22,7 +22,7 @@ func reader(conn *net.TCPConn) {
 	}
 }
 
-func main(){
+func main() {
 	tcpAddr, _ := net.ResolveTCPAddr("tcp", "127.0.0.1:9999")
 	conn, err := net.DialTCP("tcp", nil, tcpAddr)
 
@@ -32,17 +32,17 @@ func main(){
 	}
 	defer conn.Close()
 	go reader(conn)
-	fmt.Println("请输入昵称")
+	fmt.Println("Enter your nickname:")
 	fmt.Scanln(&nickname)
-	fmt.Println("你的昵称为：", nickname)
+	fmt.Println("Your nickname is", nickname)
 
-	for{
+	for {
 		var msg string
 		fmt.Scanln(&msg)
-		b := []byte("<" + nickname + ">" + "说：" + msg)
+		b := []byte("<" + nickname + ">" + ": " + msg)
 		conn.Write(b)
 		select {
-		case <- ch:
+		case <-ch:
 			fmt.Println("Server ERROR")
 			os.Exit(1)
 		default:

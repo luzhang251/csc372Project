@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"net"
+	"strings"
 )
 
 const (
@@ -121,7 +122,10 @@ func say(tcpConn *net.TCPConn) {
 	for {
 		data := make([]byte, 128)
 		total, err := tcpConn.Read(data)
-		if string(data[:total])[0:5] == "chess" { //开始新游戏
+		str := string(data[:total])
+		fmt.Println("---" + str + "----\n")
+		if strings.Compare(strings.Split(str, " ")[1], "chess") == 0 { //开始新游戏
+			fmt.Println(strings.Split(str, " ")[1] + "++++++")
 			tostring()
 		}
 		fmt.Println(string(data[:total]), err) //打印到server屏幕
